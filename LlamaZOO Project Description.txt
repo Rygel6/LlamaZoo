@@ -1,0 +1,60 @@
+LlamaZOO Unity Technical Test - Senior
+
+
+Project Description:
+This project procedurally creates a 2D cave using cellular automata rules for the actual carving of the cave. You then are able to navigate through this cave (that has some minimal props) as a Goblin explorer.
+
+Setting up this in a different project is as simple as importing all the various project files/folders and then adding the 'Cave' prefab and pressing play, or having the "Startup" script added to the scene.
+
+
+
+Start-up
+The Main Cave Object/script, instantiates the player, cave entrance and exit, and the specialty cameras this project uses in addition to the Main Camera (the follow camera and the mini-map camera) from saved prefabs created for this project.
+
+Cave Generation - Basic Structure
+Step 1: Create a randomly filled in grid of tiles with either the value 0 (which means "dead" or a wall) or the value 1 (which represents "alive" or a walkable region). 
+Step 2: Runs the grid through a set of simple Cellular Automata rules to carve out/fill in the grid tiles to form cavern rooms. (run this step multiple times to fully define the initial set of rooms)
+Step 3: Create a list of existing rooms, using a flood fill method to determine tiles belonging to each of the created cavern rooms.
+Step 4: Remove all sections of wall that are deemed too small (wall sections that have area of less than 6 connected tiles), and remove all rooms that are deemed too small (rooms that have an area smaller than  70 tiles)
+Step 5: Sort the remaining list of rooms from largest room to smallest. The largest is flagged as the "Main Room"
+Step 6: Go through each Room and find the next closest Room to it, and carve a passage from the two rooms' two closest points. (This first pass will skip any rooms that already have a connection)
+Step 7: Use same algorithm from step 5, but this time allow for a room to have multiple connections, however only ever connect the two closest rooms of disconnected chains of rooms (this prevents carving long passageways that could pass through other rooms), repeat until there are no more rooms that can't be accessed from the Main room.
+Step 8: Go through every tile, and if you find a wall tile that has no "vertical" or "horizontal" wall neighbours, but has one or more diagonal wall neighbours, turn one of the neighbours shared by both tiles into a wall tile (this is due to the method I use for tracing the outlines of the caves not currently able to handle that one rare case.. later on I could recreate this algorithm to have a more robust but more complicated method)
+Step 9: go though ever single wall tile on the map and create mesh triangles that correspond to what wall neighbours they have, to make a good looking wall structure.
+Step 10: trace the outline around the outside of every section of wall, in order to create a collision mesh, so our spawned units (currently only the player) can collide with the walls.
+Step 11: Once all of this is complete, transfer this grid over to a larger grid, and add a wide "border" around the map, for aesthetic purposes.
+
+
+Cave Generation - Prop tyle population
+Step 1: Randomly assign a non-edge tile in the Main Room as the "entrance" tile. (tile value of 2)
+Step 2: Randomly assign a non-edge tile in one of the rooms that are the farthest distance (room connection wise) from the Main Room as an "exit" tile (tile value of 3)
+Step 3: Go through all edge-tiles in every room and if they have exactly only 3 neighbours that are walkable tiles, attempt to place a "treasure" tile (tile value of 4). I use the word attempt because we only place a treasure tile on every other 'attempt'.
+
+
+once all the steps above are done, copy this grid of tiles to the main Cave object/script and let it start instantiating and placing all the units and props.
+Step 1: deactivate any possible treasures that were found on the last map.
+Step 2: go through each tile and when you come across a tile with the value of 2 (entrance), 3 (exit) or 4 (treasure). Place and Activate that "prop" type according to the tyle type (if not enough Treasures are in the treasures list, then Instantiate a new treasure prefab and add it to the list, then place it in the correct position).
+Step 3: when the Entrance is placed, take the Player and place him on that tile as well.
+
+The Cave is now complete.
+
+
+
+
+Navigating the Cave:
+- You are able to move the Player Goblin using the WASD keys or arrow keys. The Player Goblin will always face his direction (could make him always face the mouse cursor.. but that would require much more animation states and artwork to implement in a decent looking way.
+- If you hit TAB, it will toggle between the camera modes:
+	- "full map" view which shows you a zoomed out view of the main level (this view is fixed and doesn't move)
+	- "follow" view is a much closer view of the Player Goblin, and this view will stay centered on the Player Goblin. This View also has a small mini-map view of the whole map so you have an idea of the entire layout.
+- If the Player Goblin comes into contact with a treasure, it will be opened (this is just aesthetic at the moment, no "gameplay" effects have been implemented as of yet)
+- If the Player Goblin comes into contact with the exit stairs (that lead to the level below). The Cave Generation will be triggered, creating a whole new cave and placing the Player Goblin at that new Cave's entrance.
+
+
+
+Hitting F1 while navigating a Cave will save out the Grid of tiles and the created Mesh and collision data of that current cave out into a prefab that could be used to set-up a new cave at a later date. (no loading of these prefab caves implemented yet while running the game).
+
+
+
+Art Assets:
+- The Textures used for the walls and ground were just free textures found on the internet
+- The Sprites in this game (Goblin, treasure, stairs down, stairs up) were created and (in the goblin and minimally the treasure's case) animated by me.
